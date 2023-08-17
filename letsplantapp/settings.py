@@ -121,23 +121,22 @@ WSGI_APPLICATION = 'letsplantapp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'k7u9vjib5n3i76ui',
-    #     'USER': 'pa8p5svb1j4y69fh',
-    #     'PASSWORD': 'ac2ez3t11s695l7z',
-    #     'HOST': 'spryrr1myu6oalwl.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
-    #     'PORT': '3306',
-    # } 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'letsplant',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'NAME': 'th0547a761svkakk',
+        'USER': 'bityr16pdl7hz0wy',
+        'PASSWORD': 'd4xfqf6kj2bikzcm',
+        'HOST': 'clwxydcjair55xn0.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
         'PORT': '3306',
-    }
-
+    } 
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'letsplant',
+    #     'USER': 'root',
+    #     'PASSWORD': '',
+    #     'HOST': 'localhost',
+    #     'PORT': '3306',
+    # }
 }
 
 
