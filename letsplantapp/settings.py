@@ -126,7 +126,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'euov1t20zo4gpbf8',
         'USER': 'vbl0vtnp7uys78qa',
-        'PASSWORD': 'o4sndr4qgfepjco',
+        'PASSWORD': 'qo4sndr4qgfepjco',
         'HOST': 'i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
         'PORT': '3306',
     } 
