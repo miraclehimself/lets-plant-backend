@@ -62,6 +62,23 @@ class processPlantViewSet(ModelViewSet):
             }
         response = requests.post(api_url, json=data, headers=headers)
         identification_result = response.json()
+        # return JsonResponse(identification_result, safe=False)
+        is_plant = identification_result['result']['is_plant']['binary']
+        probability = identification_result['result']['is_plant']['probability']
+        if is_plant == False:
+            return Response({
+                'message': 'This image is not a plant',
+                'data': None,
+                'status': 'failed',
+            },400)
+        
+        if probability < 0.8:
+            return Response({
+                'message': 'Unable to identify image',
+                'data': None,
+                'status': 'failed',
+            },400)
+        # return JsonResponse(identification_result, safe=False)
         plant_name = identification_result['result']['classification']['suggestions'][0]['name']
         data = processPlant.objects.filter(id=serializer.data['id']).update(name=plant_name, temperature=temperature, humidity=humidity, meta_data=meta_data)
         updated_data = processPlant.objects.filter(id=serializer.data['id']).order_by('-id')[0]
