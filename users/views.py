@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from .serializers import UserSerializer, LoginSerializer
+from .serializers import UserSerializer, LoginSerializer, EditUserSerializer
 from .models import User
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
@@ -168,10 +168,18 @@ def resetPassword(request):
     except User.DoesNotExist:
         return Response({"message": "Email Does Not Exist"}, status=404)
 
+@api_view(['PUT', 'POST'])
+@permission_classes([IsAuthenticated])
+def editUser(request, *args, **kwargs):
+    user = request.user
+    serializer = EditUserSerializer(user, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+                'message': 'User Data Updated Successfully',
+                'data': serializer.data
+                }, 200)
         
+    return Response({"message":serializer.errors}, status=400)
 
-
-    
-# class UserView(APIView):
-#     def get(self, request):
         

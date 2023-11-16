@@ -9,6 +9,7 @@ urlpatterns = [
     path('user', GetUser.as_view()),
     path('change-password', views.changePassword),
     path('forgot-password', views.forgotPassword),
-    path('reset-password', views.resetPassword)
+    path('reset-password', views.resetPassword),
+    path('edit-user', views.editUser)
 
 ]

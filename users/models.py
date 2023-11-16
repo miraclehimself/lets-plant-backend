@@ -2,13 +2,17 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser,  PermissionsMixin
 
 # Create your models here.
+def upload_to(instance, filename):
+    return 'images/profile/{filename}'.format(filename=filename)
+
 
 class User(AbstractUser,  PermissionsMixin):
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
+    avatar = models.ImageField(upload_to=upload_to, null=True, blank=True)
     username = None
-    reset_otp = models.IntegerField(max_length=255, null=True, blank=True)
+    reset_otp = models.IntegerField(null=True, blank=True)
     otp_request_time = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
