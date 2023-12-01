@@ -13,5 +13,6 @@ class processPlant(models.Model):
     plant_image = models.ImageField(upload_to=upload_to)
     temperature = models.FloatField(null=True, blank=True)
     humidity = models.FloatField(null=True, blank=True)
+    recommendation = models.TextField(null=True,blank=True)
     meta_data = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)

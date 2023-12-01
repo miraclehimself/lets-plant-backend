@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from rest_framework.views import APIView
 from rest_framework import permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.viewsets import ModelViewSet
@@ -6,10 +7,13 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from .models import processPlant
 from .serializers import processPlantSerilizer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from PIL import Image
 import base64
 import requests
+
 
 # from django.conf import settings
 
@@ -97,4 +101,60 @@ class processPlantViewSet(ModelViewSet):
         serializer = processPlantSerilizer(data, many=True)
         return Response(serializer.data, 200)
         
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def gptIntegration(request):
+        id = request.data['id']
+        user = request.user
+        plant_data = processPlant.objects.filter(id=id).first()
+        serializer = processPlantSerilizer(plant_data, many=False)
+        plant_name = serializer.data['name']
+        # return Response(serializer.data['name'], 200)
+        impath = f".{serializer.data['plant_image']}"
+        with open(impath, 'rb') as image_file:
+            image_data = base64.b64encode(image_file.read()).decode('utf-8')
         
+
+            # Prepare the prompt for OpenAI
+            # prompt = f"Identify the name of the plant in this image: {image_data}"
+
+            openai_api_key = "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"
+            headers = {
+                'Authorization': f'Bearer {openai_api_key}',
+                'Content-Type': 'application/json',
+            }
+            data = {
+                "model": "gpt-4-vision-preview",
+                "messages": [
+                {
+                "role": "user",
+                "content": [
+                    {
+                    "type": "text",
+                    "text": f"{plant_name} Itemize the condition neccesary for this plant to grow and thrive"
+                    },
+                    # {
+                    # "type": "image_url",
+                    # "image_url": {
+                    #     # "url": f"data:image/jpeg;base64,{image_data}"
+                    # }
+                    # }
+                ]
+                }
+            ],
+                'max_tokens': 300,
+            }
+            response = requests.post('https://api.openai.com/v1/chat/completions', json=data, headers=headers)
+
+            # Process and return the response
+            identification_result = response.json()
+            recommend = identification_result['choices'][0]['message']['content']
+            data = processPlant.objects.filter(id=id).update(recommendation=recommend)
+            updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
+            serializer = processPlantSerilizer(updated_data, many=False)
+            return Response({
+            'message': 'Request Successful',
+            'data': serializer.data,
+            'status': 'success',
+        },200)
+            # return JsonResponse(identification_result, safe=False)
