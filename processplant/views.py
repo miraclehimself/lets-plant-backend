@@ -13,6 +13,8 @@ from django.http import JsonResponse
 from PIL import Image
 import base64
 import requests
+from django.conf import settings
+
 
 
 # from django.conf import settings
@@ -118,7 +120,8 @@ def gptIntegration(request):
             # Prepare the prompt for OpenAI
             # prompt = f"Identify the name of the plant in this image: {image_data}"
 
-            openai_api_key = "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"
+            # openai_api_key = "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"
+            openai_api_key = settings.AI_KEY
             headers = {
                 'Authorization': f'Bearer {openai_api_key}',
                 'Content-Type': 'application/json',
