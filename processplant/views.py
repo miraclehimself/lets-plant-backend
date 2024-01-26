@@ -9,11 +9,14 @@ from .models import processPlant
 from .serializers import processPlantSerilizer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django.http import HttpResponse
 from django.http import JsonResponse
 from PIL import Image
 import base64
+import cloudinary.uploader
 import requests
 from django.conf import settings
+# from _future_ import getattr
 
 
 
@@ -33,14 +36,14 @@ class processPlantViewSet(ModelViewSet):
         latitude = request.data['latitude']
         longitude = request.data['longitude']
         plant_image = request.data['plant_image']
-        
-            
+        image_url = request.FILES['plant_image']
+        upload_to_cloud = cloudinary.uploader.upload(image_url)
         # image_path = str(settings.MEDIAROOT) + "/" + plant_image
         # image = request.FILES['plant_image']
        
         
         user = request.user
-        data = processPlant.objects.create(latitude=latitude, longitude=longitude, plant_image=plant_image, user=user)
+        data = processPlant.objects.create(latitude=latitude, longitude=longitude, plant_image=plant_image, image_url=upload_to_cloud['secure_url'], user=user)
         serializer = processPlantSerilizer(data, many=False)
         impath = f".{serializer.data['plant_image']}"
         # return Response()
@@ -57,35 +60,63 @@ class processPlantViewSet(ModelViewSet):
         meta_data = weather_result['main']
     
         #Make Request to the plant identotfocation endpoint
+        # with open(impath, 'rb') as image_file:
+        #     image_data = base64.b64encode(image_file.read()).decode('utf-8')
+        #     api_url = "https://plant.id/api/v3/identification"
+        # data = {
+        #     'images': image_data
+        #     }
+        # headers = {
+        #     'Api-Key': 'dIF96sc3Cw7bDElhXAPo1e4DSCGS2MoroHydNCNEtIvqYpaMqG'
+        #     }
+        # response = requests.post(api_url, json=data, headers=headers)
+        # return HttpResponse(response)
+        
         with open(impath, 'rb') as image_file:
-            image_data = base64.b64encode(image_file.read()).decode('utf-8')
-            api_url = "https://plant.id/api/v3/identification"
+            image_data = image_file.read()
+            # image_data = image_file.read()
+            PROJECT = 'all'
+            API_KEY = '2b109kDMlL07P5egOOKNiarZO'
+            api_url = f"https://my-api.plantnet.org/v2/identify/{PROJECT}?api-key={API_KEY}"
+        
         data = {
-            'images': image_data
+            'organs': ['leaf']
             }
-        headers = {
-            'Api-Key': 'dIF96sc3Cw7bDElhXAPo1e4DSCGS2MoroHydNCNEtIvqYpaMqG'
-            }
-        response = requests.post(api_url, json=data, headers=headers)
-        identification_result = response.json()
-        # return JsonResponse(identification_result, safe=False)
-        is_plant = identification_result['result']['is_plant']['binary']
-        probability = identification_result['result']['is_plant']['probability']
-        if is_plant == False:
+        files = [
+            ('images', (impath, image_data))
+        ]
+    
+        response = requests.post(api_url, files=files, data=data)
+        resp = response.json()
+        if 'statusCode' in resp and resp['statusCode'] == 404 :
             return Response({
                 'message': 'This image is not a plant',
                 'data': None,
                 'status': 'failed',
             },400)
+            
+        # return JsonResponse(resp, safe=False)
         
-        if probability < 0.8:
-            return Response({
-                'message': 'Unable to identify image',
-                'data': None,
-                'status': 'failed',
-            },400)
+        # return HttpResponse(response)
+        # return JsonResponse(response, safe=False)
+        # is_plant = identification_result['result']['is_plant']['binary']
+        # probability = identification_result['result']['is_plant']['probability']
+        # if is_plant == False:
+        #     return Response({
+        #         'message': 'This image is not a plant',
+        #         'data': None,
+        #         'status': 'failed',
+        #     },400)
+        
+        # if probability < 0.8:
+        #     return Response({
+        #         'message': 'Unable to identify image',
+        #         'data': None,
+        #         'status': 'failed',
+        #     },400)
         # return JsonResponse(identification_result, safe=False)
-        plant_name = identification_result['result']['classification']['suggestions'][0]['name']
+        # plant_name = identification_result['result']['classification']['suggestions'][0]['name']
+        plant_name = resp['results'][0]['species']['commonNames']
         data = processPlant.objects.filter(id=serializer.data['id']).update(name=plant_name, temperature=temperature, humidity=humidity, meta_data=meta_data)
         updated_data = processPlant.objects.filter(id=serializer.data['id']).order_by('-id')[0]
         serializer = processPlantSerilizer(updated_data, many=False)
@@ -113,6 +144,7 @@ def gptIntegration(request):
         plant_name = serializer.data['name']
         # return Response(serializer.data['name'], 200)
         impath = f".{serializer.data['plant_image']}"
+        # return Response(impath)
         with open(impath, 'rb') as image_file:
             image_data = base64.b64encode(image_file.read()).decode('utf-8')
         

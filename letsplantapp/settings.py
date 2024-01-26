@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta 
 import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -124,23 +127,23 @@ WSGI_APPLICATION = 'letsplantapp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'euov1t20zo4gpbf8',
-        'USER': 'vbl0vtnp7uys78qa',
-        'PASSWORD': 'qo4sndr4qgfepjco',
-        'HOST': 'i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
-        'PORT': '3306',
-    } 
-#   mysql://vbl0vtnp7uys78qa:qo4sndr4qgfepjco@i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com:3306/euov1t20zo4gpbf8
     # 'default': {
     #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'letsplant',
-    #     'USER': 'root',
-    #     'PASSWORD': '',
-    #     'HOST': 'localhost',
+    #     'NAME': 'euov1t20zo4gpbf8',
+    #     'USER': 'vbl0vtnp7uys78qa',
+    #     'PASSWORD': 'qo4sndr4qgfepjco',
+    #     'HOST': 'i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
     #     'PORT': '3306',
-    # }
+    # } 
+#   mysql://vbl0vtnp7uys78qa:qo4sndr4qgfepjco@i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com:3306/euov1t20zo4gpbf8
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'letsplant',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
 }
 
 AI_KEY = os.environ.get('AI_KEY')
@@ -205,6 +208,12 @@ AUTH_USER_MODEL = 'users.User'
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
+
+cloudinary.config( 
+  cloud_name = "dzs3fuvcz", 
+  api_key = "356667945526662", 
+  api_secret = "7gWLH_fZQc_FfvDZr7uIge7dnzg"
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

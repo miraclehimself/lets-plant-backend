@@ -11,6 +11,7 @@ class processPlant(models.Model):
     longitude = models.FloatField()
     latitude = models.FloatField()
     plant_image = models.ImageField(upload_to=upload_to)
+    image_url = models.CharField(max_length=255, null=True, blank=True)
     temperature = models.FloatField(null=True, blank=True)
     humidity = models.FloatField(null=True, blank=True)
     recommendation = models.TextField(null=True,blank=True)

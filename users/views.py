@@ -176,7 +176,7 @@ def editUser(request, *args, **kwargs):
     if serializer.is_valid():
         serializer.save()
         return Response({
-                'message': 'User Data Updated Successfully',
+                'message': 'Profile Updated Successfully',
                 'data': serializer.data
                 }, 200)
         
