@@ -182,4 +182,30 @@ def editUser(request, *args, **kwargs):
         
     return Response({"message":serializer.errors}, status=400)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteUser(request, *args, **kwargs):
+    user = request.user
+    user.last_login = timezone.now()
+    user.save()
+    user.delete()
+    # refresh_token = request.data.get('token')
+    # token = RefreshToken(token)
+    # token.blacklist()
+    return Response({
+                'message': 'Account has been closed successfully Successfully',
+                'data': None
+                }, 204)
+    
+    # try:
+    #     user = User.objects.get(id=bearer.id)
+    #     user_to_be_deleted = User.objects.filter(id=user.id).delete()
+    #     if(user_to_be_deleted):
+    #         return Response({
+    #             'message': 'Account has been closed successfully Successfully',
+    #             'data': None
+    #             }, 204)
+    
+    # except User.DoesNotExist:
+    #     return Response({"message": "Email Does Not Exist"}, status=404)
         

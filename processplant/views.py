@@ -16,6 +16,7 @@ import base64
 import cloudinary.uploader
 import requests
 from django.conf import settings
+from geopy.geocoders import Nominatim
 # from _future_ import getattr
 
 
@@ -144,21 +145,25 @@ def gptIntegration(request):
         plant_name = serializer.data['name']
         # return Response(serializer.data['name'], 200)
         impath = f".{serializer.data['plant_image']}"
+        imageUrl = f"{serializer.data['image_url']}"
+        image_file = requests.get(imageUrl).content
         # return Response(impath)
-        with open(impath, 'rb') as image_file:
-            image_data = base64.b64encode(image_file.read()).decode('utf-8')
+        # with open(impath, 'rb') as image_file:
+        image_data = base64.b64encode(image_file).decode('utf-8')
+        lat = request.data['latitude']
+        lon = request.data['longitude']
+        geolocator = Nominatim(user_agent="location_app")
+        location = geolocator.reverse((lat, lon), language='en')
         
+        # Prepare the prompt for OpenAI
+        prompt = f"Considering the location {location}, and the present condition of this plant, kindly give a recommendation"
 
-            # Prepare the prompt for OpenAI
-            # prompt = f"Identify the name of the plant in this image: {image_data}"
-
-            # openai_api_key = "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"
-            openai_api_key = settings.AI_KEY
-            headers = {
+        openai_api_key = settings.AI_KEY
+        headers = {
                 'Authorization': f'Bearer {openai_api_key}',
                 'Content-Type': 'application/json',
             }
-            data = {
+        data = {
                 "model": "gpt-4-vision-preview",
                 "messages": [
                 {
@@ -166,28 +171,32 @@ def gptIntegration(request):
                 "content": [
                     {
                     "type": "text",
-                    "text": f"{plant_name} Itemize the condition neccesary for this plant to grow and thrive"
+                    # "text": f"{plant_name} Itemize the condition neccesary for this plant to grow and thrive"
+                    "text": prompt
                     },
-                    # {
-                    # "type": "image_url",
-                    # "image_url": {
-                    #     # "url": f"data:image/jpeg;base64,{image_data}"
-                    # }
-                    # }
+                    {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{image_data}"
+                    }
+                    }
                 ]
                 }
             ],
                 'max_tokens': 300,
             }
-            response = requests.post('https://api.openai.com/v1/chat/completions', json=data, headers=headers)
+        response = requests.post('https://api.openai.com/v1/chat/completions', json=data, headers=headers)
+        # return HttpResponse(response)
+        
 
             # Process and return the response
-            identification_result = response.json()
-            recommend = identification_result['choices'][0]['message']['content']
-            data = processPlant.objects.filter(id=id).update(recommendation=recommend)
-            updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
-            serializer = processPlantSerilizer(updated_data, many=False)
-            return Response({
+        identification_result = response.json()
+        # return JsonResponse(identification_result, safe=False)
+        recommend = identification_result['choices'][0]['message']['content']
+        data = processPlant.objects.filter(id=id).update(recommendation=recommend)
+        updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
+        serializer = processPlantSerilizer(updated_data, many=False)
+        return Response({
             'message': 'Request Successful',
             'data': serializer.data,
             'status': 'success',
