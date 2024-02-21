@@ -127,23 +127,23 @@ WSGI_APPLICATION = 'letsplantapp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'euov1t20zo4gpbf8',
-        'USER': 'vbl0vtnp7uys78qa',
-        'PASSWORD': 'qo4sndr4qgfepjco',
-        'HOST': 'i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
-        'PORT': '3306',
-    } 
-#   mysql://vbl0vtnp7uys78qa:qo4sndr4qgfepjco@i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com:3306/euov1t20zo4gpbf8
     # 'default': {
     #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'letsplant',
-    #     'USER': 'root',
-    #     'PASSWORD': '',
-    #     'HOST': 'localhost',
+    #     'NAME': 'euov1t20zo4gpbf8',
+    #     'USER': 'vbl0vtnp7uys78qa',
+    #     'PASSWORD': 'qo4sndr4qgfepjco',
+    #     'HOST': 'i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com',
     #     'PORT': '3306',
-    # }
+    # } 
+#   mysql://vbl0vtnp7uys78qa:qo4sndr4qgfepjco@i54jns50s3z6gbjt.chr7pe7iynqr.eu-west-1.rds.amazonaws.com:3306/euov1t20zo4gpbf8
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'letsplant',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
 }
 
 AI_KEY = os.environ.get('AI_KEY')

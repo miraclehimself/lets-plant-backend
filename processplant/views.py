@@ -143,7 +143,6 @@ def gptIntegration(request):
         plant_data = processPlant.objects.filter(id=id).first()
         serializer = processPlantSerilizer(plant_data, many=False)
         plant_name = serializer.data['name']
-        # return Response(serializer.data['name'], 200)
         impath = f".{serializer.data['plant_image']}"
         imageUrl = f"{serializer.data['image_url']}"
         image_file = requests.get(imageUrl).content
@@ -152,11 +151,16 @@ def gptIntegration(request):
         image_data = base64.b64encode(image_file).decode('utf-8')
         lat = request.data['latitude']
         lon = request.data['longitude']
+        water = request.data['water_frequency']
+        sun = request.data['sun_frequency']
+        soil = request.data['soil_type']
+        symptoms = request.data['symptoms']
         geolocator = Nominatim(user_agent="location_app")
         location = geolocator.reverse((lat, lon), language='en')
         
         # Prepare the prompt for OpenAI
-        prompt = f"Considering the location {location}, and the present condition of this plant, kindly give a recommendation"
+        prompt = f"The watering frequncy of this plant is {water}, while the sun frequency is daily {sun} and the soil type is {soil}, with the symptoms of {symptoms} also Considering the location {location}, and the present condition of this plant, kindly give a recommendation"
+        # prompt = f"Considering the location {location}, and the present condition of this plant, kindly give a recommendation"
 
         openai_api_key = settings.AI_KEY
         headers = {
@@ -183,7 +187,7 @@ def gptIntegration(request):
                 ]
                 }
             ],
-                'max_tokens': 300,
+                'max_tokens': 500,
             }
         response = requests.post('https://api.openai.com/v1/chat/completions', json=data, headers=headers)
         # return HttpResponse(response)
@@ -193,7 +197,7 @@ def gptIntegration(request):
         identification_result = response.json()
         # return JsonResponse(identification_result, safe=False)
         recommend = identification_result['choices'][0]['message']['content']
-        data = processPlant.objects.filter(id=id).update(recommendation=recommend)
+        data = processPlant.objects.filter(id=id).update(recommendation=recommend, water_frequency=water, sun_frequency=sun, soil_type=soil, symptoms=symptoms)
         updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
         serializer = processPlantSerilizer(updated_data, many=False)
         return Response({
