@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework', 
     'users',
     'processplant',
+    'payment',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
 ]
@@ -147,6 +148,7 @@ DATABASES = {
 }
 
 AI_KEY = os.environ.get('AI_KEY')
+GC_TOKEN = os.environ.get('GC_TOKEN')
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
