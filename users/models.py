@@ -14,6 +14,10 @@ class User(AbstractUser,  PermissionsMixin):
     username = None
     reset_otp = models.IntegerField(null=True, blank=True)
     otp_request_time = models.DateTimeField(null=True, blank=True)
-
+    subscription_date = models.DateTimeField(null=True, blank=True)
+    subscription_due_date = models.DateTimeField(null=True, blank=True)
+    subscription_status = models.CharField(max_length=255, null=True, blank=True)
+    expired = models.BooleanField(default=False, blank=True)
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

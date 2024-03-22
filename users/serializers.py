@@ -5,7 +5,7 @@ class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, default='./images/profile/avatar.png')
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'avatar', 'password']
+        fields = ['id', 'name', 'email', 'avatar', 'password', 'subscription_date', 'subscription_due_date', 'subscription_status', 'expired']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -30,6 +30,9 @@ class LoginSerializer(serializers.ModelSerializer):
 class EditUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'avatar']
-        name =  serializers.CharField(required=True)
+        fields = ['id', 'name', 'avatar', 'subscription_status', 'expired']
+        name =  serializers.CharField(required=False)
         avatar = serializers.ImageField(required=False)
+        subscription_status =  serializers.CharField(required=False)
+        
+        

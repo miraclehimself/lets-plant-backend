@@ -13,7 +13,7 @@ from django.core.mail import EmailMessage, get_connection
 from django.conf import settings
 from random import randint
 from django.utils import timezone
-
+from django.utils.dateparse import parse_datetime
 
 # Create your views here.
 class RegisterView(APIView):
@@ -69,12 +69,19 @@ class GetUser(APIView):
     serializer_class = UserSerializer
 
     def get(self, request, *args, **kwargs):
-         serializer = self.serializer_class(request.user)
-         return Response({
-              'message': 'User Retrieved Successfully',
-              'data': serializer.data,
-              
-              }, 200)
+        serializer = self.serializer_class(request.user)
+        if serializer.data['subscription_due_date'] != None and parse_datetime(serializer.data['subscription_due_date']) > timezone.now():
+            day = parse_datetime(serializer.data['subscription_due_date']) - timezone.now()
+            remaining_days = day.days
+        else:
+            remaining_days = 0
+        return Response({
+            'message': 'User Retrieved Successfully',
+            'data': {
+                'user': serializer.data,
+                'remaining_days': remaining_days
+                }, 
+                }, 200)
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

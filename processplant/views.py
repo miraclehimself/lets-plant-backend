@@ -60,7 +60,7 @@ class processPlantViewSet(ModelViewSet):
         humidity = weather_result['main']['humidity']
         meta_data = weather_result['main']
     
-        #Make Request to the plant identotfocation endpoint
+        #Make Request to the plant identification endpoint
         # with open(impath, 'rb') as image_file:
         #     image_data = base64.b64encode(image_file.read()).decode('utf-8')
         #     api_url = "https://plant.id/api/v3/identification"
