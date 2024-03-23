@@ -14,6 +14,8 @@ from django.conf import settings
 from random import randint
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
+
 
 # Create your views here.
 class RegisterView(APIView):
@@ -204,15 +206,31 @@ def deleteUser(request, *args, **kwargs):
                 'data': None
                 }, 204)
     
-    # try:
-    #     user = User.objects.get(id=bearer.id)
-    #     user_to_be_deleted = User.objects.filter(id=user.id).delete()
-    #     if(user_to_be_deleted):
-    #         return Response({
-    #             'message': 'Account has been closed successfully Successfully',
-    #             'data': None
-    #             }, 204)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def updateUserPlan(request, *args, **kwargs):
+    user = request.user
+    selected_plan = request.data['plan'].upper()
+    plan = ['FREE','NO-PLAN']
+    if selected_plan in plan :
+        if(request.data['plan'] == 'FREE' and user.used_free_trial == True):
+            return Response({"message": "You have already used your free trial", 'data': None}, status=400)
+        elif(request.data['plan'] == 'FREE' and user.used_free_trial == False):
+            user.subscription_status = selected_plan
+            user.subscription_date = timezone.now()
+            user.subscription_due_date = timezone.now() + timezone.timedelta(days=30)
+            user.used_free_trial = True
+            user.expired = False
+            user.save()
+            return Response({'message':'You have successfully subscribed to your free trial, which last for 30 days', 'data':None}, status=200)
+        else:
+            user.subscription_status = selected_plan
+            user.expired = True
+            user.save()
+            return Response({'message':'You have selected the NO Plan option, you won\'t be able to use the functionalities of the app', 'data':None}, status=200)
+            
+    else:
+        return Response({"message": "Invalid plan selected", 'data': None}, status=400)
     
-    # except User.DoesNotExist:
-    #     return Response({"message": "Email Does Not Exist"}, status=404)
+
         

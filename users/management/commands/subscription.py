@@ -11,7 +11,7 @@ class Command(BaseCommand):
         users_with_subscription = User.objects.filter(expired=False)
         for user in users_with_subscription:
             if(timezone.now() > user.subscription_due_date):
-                user.subscription_status = 'expired'
+                user.subscription_status = 'EXPIRED'
                 user.expired = True
                 user.save()
             

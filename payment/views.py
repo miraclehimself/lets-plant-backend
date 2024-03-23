@@ -80,7 +80,7 @@ def handleWebhook(request):
         user = User.objects.get(id=user_id)
         user.subscription_date = timezone.now() 
         user.subscription_due_date = timezone.now() + timezone.timedelta(days=30)
-        user.subscription_status = 'subscribed'
+        user.subscription_status = 'SUBSCRIBED'
         user.expired = False
         user.save()
         user_data = UserSerializer(user, many=False)
@@ -96,9 +96,5 @@ def handleWebhook(request):
         # return JsonResponse(payment_data.data, safe=False)
       
     
-        
-    # if webhook_json['event_type'] == 'billing_request_flow.completed':
-        # Handle the completed event
-        # billing_request_id = webhook_json['links']['billing_request']
-        # Continue with the rest of the webhook handling logic
+   
     

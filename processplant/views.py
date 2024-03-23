@@ -32,6 +32,10 @@ class processPlantViewSet(ModelViewSet):
     
     @csrf_exempt
     def create(self, request):
+        user = request.user
+        if user.expired == True:
+            return Response({'message': 'Your subscription has expired or You did not have an active subscription. Please subscribe to continue.'}, status=400)
+
         plant_serializer = processPlantSerilizer(data=request.data)
         plant_serializer.is_valid(raise_exception=True)
         latitude = request.data['latitude']
@@ -43,7 +47,6 @@ class processPlantViewSet(ModelViewSet):
         # image = request.FILES['plant_image']
        
         
-        user = request.user
         data = processPlant.objects.create(latitude=latitude, longitude=longitude, plant_image=plant_image, image_url=upload_to_cloud['secure_url'], user=user)
         serializer = processPlantSerilizer(data, many=False)
         impath = f".{serializer.data['plant_image']}"
