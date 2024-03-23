@@ -27,7 +27,7 @@ def makePayment(request):
     try:
         billing_request = client.billing_requests.create(params={
             "payment_request": {
-                "amount": "500",
+                "amount": "9000",
                 "currency": "GBP",
                 "description": "letsplantt",
                 "app_fee": "500",
@@ -61,7 +61,7 @@ def makePayment(request):
                 
             }
             user = request.user
-            create_billing = Payment.objects.create(user=user, amount=9.00, identity=billing_request.id)
+            create_billing = Payment.objects.create(user=user, amount=9000, identity=billing_request.id)
             return JsonResponse(billing_details)
         except gocardless_pro.errors.InvalidApiUsageError as e:
             return HttpResponse(f"Error creating billing request: {e}")    
@@ -72,9 +72,9 @@ def makePayment(request):
 def handleWebhook(request):
     webhook_body = request.body.decode('utf-8')
     webhook_json = json.loads(webhook_body)
-    event_type = webhook_json['events']['details']['cause']
-    if event_type == 'billing_request_collect_amount':
-        id = webhook_json['events']['links']['billing_request']
+    event_type = webhook_json['events'][0]['details']['cause']
+    if event_type == 'payment_confirmed':
+        id = webhook_json['events'][0]['links']['billing_request']
         payment = Payment.objects.get(identity=id)
         user_id = payment.user_id
         user = User.objects.get(id=user_id)
@@ -84,16 +84,17 @@ def handleWebhook(request):
         user.expired = False
         user.save()
         user_data = UserSerializer(user, many=False)
-        # payment_data = PaymentSerializer(user, many=False)
+        payment.successful = True
+        payment.save()
         return Response(user_data.data, 200)
         
-        return Response({
-            'message': 'Fetched',
-            'data': payment_data.data,
-            'status': 'success',
-        },200)
-        # return Response(payment_data.data, 200)
-        # return JsonResponse(payment_data.data, safe=False)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getPayments(request):
+    user = request.user
+    payment = Payment.objects.filter(user=request.user).all().order_by('-id')
+    PaymentHistory = PaymentSerializer(payment, many=True)
+    return Response({'message': 'Payment History Returned Successfully','data':PaymentHistory.data, 'status':'success' }, 200)
       
     
    
