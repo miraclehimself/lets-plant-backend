@@ -11,6 +11,7 @@ class User(AbstractUser,  PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     avatar = models.ImageField(upload_to=upload_to, null=True, blank=True)
+    avatar_url = models.CharField(max_length=255, null=True, blank=True)
     username = None
     reset_otp = models.IntegerField(null=True, blank=True)
     otp_request_time = models.DateTimeField(null=True, blank=True)

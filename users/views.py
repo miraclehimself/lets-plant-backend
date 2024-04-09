@@ -14,6 +14,7 @@ from django.conf import settings
 from random import randint
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+import cloudinary.uploader
 from django.utils import timezone
 
 
@@ -181,7 +182,15 @@ def resetPassword(request):
 @permission_classes([IsAuthenticated])
 def editUser(request, *args, **kwargs):
     user = request.user
-    serializer = EditUserSerializer(user, data=request.data)
+    if 'avatar' in request.FILES:
+        avatar = request.FILES['avatar']
+        upload_to_cloud = cloudinary.uploader.upload(avatar)
+        avatar_url = upload_to_cloud['secure_url']
+        user.avatar_url = avatar_url
+        user.save()
+
+    serializer = EditUserSerializer(user, data=request.data, context={'avatar_url': avatar_url})
+    # return Response({'message': avatar_url })
     if serializer.is_valid():
         serializer.save()
         return Response({
