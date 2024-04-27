@@ -62,23 +62,9 @@ class processPlantViewSet(ModelViewSet):
         temperature = weather_result['main']['temp']
         humidity = weather_result['main']['humidity']
         meta_data = weather_result['main']
-    
-        #Make Request to the plant identification endpoint
-        # with open(impath, 'rb') as image_file:
-        #     image_data = base64.b64encode(image_file.read()).decode('utf-8')
-        #     api_url = "https://plant.id/api/v3/identification"
-        # data = {
-        #     'images': image_data
-        #     }
-        # headers = {
-        #     'Api-Key': 'dIF96sc3Cw7bDElhXAPo1e4DSCGS2MoroHydNCNEtIvqYpaMqG'
-        #     }
-        # response = requests.post(api_url, json=data, headers=headers)
-        # return HttpResponse(response)
         
         with open(impath, 'rb') as image_file:
             image_data = image_file.read()
-            # image_data = image_file.read()
             PROJECT = 'all'
             API_KEY = '2b109kDMlL07P5egOOKNiarZO'
             api_url = f"https://my-api.plantnet.org/v2/identify/{PROJECT}?api-key={API_KEY}"
@@ -93,6 +79,8 @@ class processPlantViewSet(ModelViewSet):
         response = requests.post(api_url, files=files, data=data)
         resp = response.json()
         if 'statusCode' in resp and resp['statusCode'] == 404 :
+            plant_to_delete = processPlant.objects.get(id=serializer.data['id'])
+            plant_to_delete.delete()
             return Response({
                 'message': 'This image is not a plant',
                 'data': None,
@@ -199,13 +187,19 @@ def gptIntegration(request):
             # Process and return the response
         identification_result = response.json()
         # return JsonResponse(identification_result, safe=False)
-        recommend = identification_result['choices'][0]['message']['content']
-        data = processPlant.objects.filter(id=id).update(recommendation=recommend, water_frequency=water, sun_frequency=sun, soil_type=soil, symptoms=symptoms)
-        updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
-        serializer = processPlantSerilizer(updated_data, many=False)
-        return Response({
-            'message': 'Request Successful',
-            'data': serializer.data,
-            'status': 'success',
-        },200)
-            # return JsonResponse(identification_result, safe=False)
+        if 'choices' in identification_result:
+            recommend = identification_result['choices'][0]['message']['content']
+            data = processPlant.objects.filter(id=id).update(recommendation=recommend, water_frequency=water, sun_frequency=sun, soil_type=soil, symptoms=symptoms)
+            updated_data = processPlant.objects.filter(id=id).order_by('-id')[0]
+            serializer = processPlantSerilizer(updated_data, many=False)
+            return Response({
+                'message': 'Request Successful',
+                'data': serializer.data,
+                'status': 'success',
+            },200)
+        else:
+             return Response({
+                'message': 'An Error Occured, Please try again later',
+                'data': None,
+                'status': identification_result,
+            },200)
