@@ -17,6 +17,9 @@ import cloudinary.uploader
 import requests
 from django.conf import settings
 from geopy.geocoders import Nominatim
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
+
 # from _future_ import getattr
 
 
@@ -33,8 +36,11 @@ class processPlantViewSet(ModelViewSet):
     @csrf_exempt
     def create(self, request):
         user = request.user
-        if user.expired == True:
-            return Response({'message': 'Your subscription has expired or You did not have an active subscription. Please subscribe to continue.'}, status=400)
+        if user.expired == True or timezone.now() > user.subscription_due_date :
+            return Response({'message': 'Your subscription has expired or You did not have an active subscription. Please subscribe to continue.',  
+                            'data': None,
+                            'status': 'failed'}, 
+                            status=400)
 
         plant_serializer = processPlantSerilizer(data=request.data)
         plant_serializer.is_valid(raise_exception=True)
