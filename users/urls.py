@@ -8,6 +8,7 @@ urlpatterns = [
     path('login', LoginView.as_view()),
     path('user', GetUser.as_view()),
     path('change-password', views.changePassword),
+    path('verify-email', views.verifyEmailOtp),
     path('forgot-password', views.forgotPassword),
     path('reset-password', views.resetPassword),
     path('edit-user', views.editUser),

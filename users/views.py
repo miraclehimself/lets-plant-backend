@@ -25,15 +25,86 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         data = serializer.data
-        user = authenticate(email= serializer.data['email'], password= request.data['password'])
-        refresh = RefreshToken.for_user(user)
-        return Response({
-             "message": "Regisration Successfull",
-             'data': data,
-             'token': str(refresh.access_token),
-             'refresh': str(refresh),
-        })
+        user_email = serializer.data['email']
+        otp = randint(1000, 9000)
+        user = User.objects.filter(email=user_email).update(email_otp=otp, email_otp_request_time=timezone.now())
+        with get_connection(  
+     host=settings.EMAIL_HOST, 
+     port=settings.EMAIL_PORT,  
+     username=settings.EMAIL_HOST_USER, 
+     password=settings.EMAIL_HOST_PASSWORD, 
+     use_tls=settings.EMAIL_USE_TLS
+  
+       ) as connection:  
+           subject = 'Letsplant, Verify your email'
+           email_from = settings.EMAIL_HOST_USER  
+           recipient_list = [user_email, ]  
+           message = f'Welcome {serializer.data["name"]}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+           EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()  
     
+        # return Response({ "message": "An instruction on how to reset your password has been sent to your mail "}, status=200)
+        
+        # user = authenticate(email= serializer.data['email'], password= request.data['password'])
+        # refresh = RefreshToken.for_user(user)
+        return Response({
+             "message": "Regisration Successfull, A mail containing your verification code has been sent to your email address, kindly use it to complete your registration",
+             'data': data,
+            #  'token': str(refresh.access_token),
+            #  'refresh': str(refresh),
+        })
+        
+@api_view(['POST'])
+def verifyEmailOtp(request):
+    if 'otp' not in request.POST:  
+        return Response({"message": "Kindly supply the OTP"}, status=400)
+    elif 'email' not in request.POST:  
+        return Response({"message": "Kindly supply the email address"}, status=400)
+    otp = request.data.get('otp')
+    email = request.data.get('email')
+    try:
+        user = User.objects.get(email=email)
+        if user.is_verified == True:
+            return Response({"message": "User has already been verified before now"}, status=400) 
+         
+        stored_otp = user.email_otp
+        user_email = user.email
+        
+        if(int(stored_otp) == int(otp)):     
+            time_difference = timezone.now() - user.email_otp_request_time
+            minutes_difference = round(time_difference.total_seconds() / 60)
+            if(minutes_difference > 5 and user.is_verified == False):
+                otp = randint(1000, 9000)
+                update_user = User.objects.filter(email=user_email).update(email_otp=otp, email_otp_request_time=timezone.now())
+                with get_connection(  
+            host=settings.EMAIL_HOST, 
+            port=settings.EMAIL_PORT,  
+            username=settings.EMAIL_HOST_USER, 
+            password=settings.EMAIL_HOST_PASSWORD, 
+            use_tls=settings.EMAIL_USE_TLS
+        
+            ) as connection:  
+                    subject = 'Letsplant, Resent Verification Code'
+                    email_from = settings.EMAIL_HOST_USER  
+                    recipient_list = [user_email, ]  
+                    message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+                    EmailMessage(subject, message, email_from, recipient_list, connection=connection).send() 
+                return Response({"message": "Expired One time password, Another mail has been sent to your email address."}, status=400)
+            
+            user.is_verified = True
+            user.save()
+            serializer_class = UserSerializer
+            serializer = serializer_class(user)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                    'message': 'Your Email has been verified successfully.',
+                    'token': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'data': serializer.data,
+                    }, 200)
+            
+        return Response({"message": "Incorrect One time password"}, status=400)
+    except User.DoesNotExist:
+        return Response({"message": "Email Does Not Exist"}, status=404)
 
 class LoginView(APIView):
     def post(self, request):
@@ -58,8 +129,25 @@ class LoginView(APIView):
                         'message': 'Incorrect credentials',
                         'data' : {}
                     }, 401)
+                if user.is_verified == False:
+                    otp = randint(1000, 9000)
+                    update_user = User.objects.filter(email=email).update(email_otp=otp, email_otp_request_time=timezone.now())
+                    with get_connection(  
+                host=settings.EMAIL_HOST, 
+                port=settings.EMAIL_PORT,  
+                username=settings.EMAIL_HOST_USER, 
+                password=settings.EMAIL_HOST_PASSWORD, 
+                use_tls=settings.EMAIL_USE_TLS
+            
+                ) as connection:  
+                        subject = 'Letsplant, Resent Verification Code'
+                        email_from = settings.EMAIL_HOST_USER  
+                        recipient_list = [email, ]  
+                        message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+                        EmailMessage(subject, message, email_from, recipient_list, connection=connection).send() 
+                    return Response({"message": "You are yet to verify your email, Another mail has been sent to your email address.", 'status': 412}, status=400)
+                
                 refresh = RefreshToken.for_user(user)
-
                 return Response({
                     'status': 200,
                     'message': 'Authenicated Successfully',

@@ -14,6 +14,9 @@ class User(AbstractUser,  PermissionsMixin):
     avatar_url = models.CharField(max_length=255, null=True, blank=True)
     username = None
     reset_otp = models.IntegerField(null=True, blank=True)
+    email_otp = models.IntegerField(null=True, blank=True)
+    is_verified = models.BooleanField(default=False, blank=True)
+    email_otp_request_time = models.DateTimeField(null=True, blank=True)
     otp_request_time = models.DateTimeField(null=True, blank=True)
     subscription_date = models.DateTimeField(null=True, blank=True)
     subscription_due_date = models.DateTimeField(null=True, blank=True)
