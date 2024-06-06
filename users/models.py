@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,  PermissionsMixin
+from django.utils import timezone
 
 # Create your models here.
 def upload_to(instance, filename):
@@ -19,7 +20,7 @@ class User(AbstractUser,  PermissionsMixin):
     email_otp_request_time = models.DateTimeField(null=True, blank=True)
     otp_request_time = models.DateTimeField(null=True, blank=True)
     subscription_date = models.DateTimeField(null=True, blank=True)
-    subscription_due_date = models.DateTimeField(null=True, blank=True)
+    subscription_due_date = models.DateTimeField(default=timezone.now, null=True, blank=True)
     subscription_status = models.CharField(max_length=255, null=True, blank=True)
     expired = models.BooleanField(default=True, blank=True)
     used_free_trial = models.BooleanField(default=False, blank=True)
