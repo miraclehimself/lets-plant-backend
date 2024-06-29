@@ -36,10 +36,22 @@ class RegisterView(APIView):
      use_tls=settings.EMAIL_USE_TLS
   
        ) as connection:  
-           subject = 'Letsplant, Verify your email'
+           subject = 'LetPlant, Verify your email'
            email_from = settings.EMAIL_HOST_USER  
-           recipient_list = [user_email, ]  
-           message = f'Welcome {serializer.data["name"]}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+           recipient_list = [user_email, ] 
+           message = f'''
+Welcome {serializer.data["name"]},
+
+Kindly copy the verification code below to complete your registration:
+
+Code: {otp}
+
+The code expires in 5 minutes. If the sign-up process wasn't authorized by you, kindly ignore this email.
+
+Regards,
+LetPlant Tech Team
+                        '''   
+        #    message = f'Welcome {serializer.data["name"]}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
            EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()  
     
         # return Response({ "message": "An instruction on how to reset your password has been sent to your mail "}, status=200)
@@ -83,10 +95,22 @@ def verifyEmailOtp(request):
             use_tls=settings.EMAIL_USE_TLS
         
             ) as connection:  
-                    subject = 'Letsplant, Resent Verification Code'
+                    subject = 'LetPlant, Resent Verification Code'
                     email_from = settings.EMAIL_HOST_USER  
                     recipient_list = [user_email, ]  
-                    message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+                    message = f'''
+Dear {user.name},
+
+Kindly copy the verification code below to complete your registration:
+
+Code: {otp}
+
+The code expires in 5 minutes. If the sign-up process wasn't authorized by you, kindly ignore this email.
+
+Regards,
+LetPlant Tech Team
+                        '''  
+                    # message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
                     EmailMessage(subject, message, email_from, recipient_list, connection=connection).send() 
                 return Response({"message": "Expired One time password, Another mail has been sent to your email address."}, status=400)
             
@@ -140,17 +164,29 @@ class LoginView(APIView):
                 use_tls=settings.EMAIL_USE_TLS
             
                 ) as connection:  
-                        subject = 'Letsplant, Resent Verification Code'
+                        subject = 'LetPlant, Resent Verification Code'
                         email_from = settings.EMAIL_HOST_USER  
-                        recipient_list = [email, ]  
-                        message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
+                        recipient_list = [email, ]
+                        message = f'''
+                        Dear {user.name},
+
+ Kindly copy the verification code below to complete your registration:
+
+Code: {otp}
+
+The code expires in 5 minutes. If the sign-up process wasn't authorized by you, kindly ignore this email.
+
+Regards,
+LetPlant Tech Team
+                        '''  
+                        # message = f'Hello {user.name}, Kindly copy the verification code below to complete your registration, Code: {otp}, The code expires in 5 minutes if the sign up process wasn\'t authorize by you kindly ignore'
                         EmailMessage(subject, message, email_from, recipient_list, connection=connection).send() 
                     return Response({"message": "You are yet to verify your email, Another mail has been sent to your email address.", 'status': 412}, status=400)
                 
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'status': 200,
-                    'message': 'Authenicated Successfully',
+                    'message': 'Authenticated Successfully',
                     'token': str(refresh.access_token),
                     'refresh': str(refresh),
                 })
@@ -224,8 +260,23 @@ def forgotPassword(request):
        ) as connection:  
            subject = 'Letsplant Password Reset'
            email_from = settings.EMAIL_HOST_USER  
-           recipient_list = [request.data.get("email"), ]  
-           message = f'Hi, you requested for a password reset, kindly use the below OTP to complete the process, The one time password is valid for 5 minutes, OTP: {otp} if this was not authorized by you kindly ignore'
+           recipient_list = [request.data.get("email"), ]
+           message = f'''
+Hi,
+
+You requested for a password reset, kindly use the below OTP to complete the process.
+
+The one-time password is valid for 5 minutes.
+
+ OTP code: {otp}
+
+If this was not authorized by you kindly ignore.
+
+Regards,
+LetPlant Technology Team
+           '''
+           EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()
+        #    message = f'Hi, you requested for a password reset, kindly use the below OTP to complete the process, The one time password is valid for 5 minutes, OTP: {otp} if this was not authorized by you kindly ignore'
            EmailMessage(subject, message, email_from, recipient_list, connection=connection).send()  
     
         return Response({ "message": "An instruction on how to reset your password has been sent to your mail "}, status=200)

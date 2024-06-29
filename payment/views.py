@@ -29,7 +29,7 @@ def makePayment(request):
             "payment_request": {
                 "amount": "9000",
                 "currency": "GBP",
-                "description": "letsplantt",
+                "description": "LetPlant",
                 "app_fee": "500",
             },  
         })
