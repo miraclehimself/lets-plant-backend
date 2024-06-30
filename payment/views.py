@@ -27,7 +27,7 @@ def makePayment(request):
     try:
         billing_request = client.billing_requests.create(params={
             "payment_request": {
-                "amount": "9000",
+                "amount": "347",
                 "currency": "GBP",
                 "description": "LetPlant",
                 "app_fee": "500",
