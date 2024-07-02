@@ -15,6 +15,11 @@ class Payment(models.Model):
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     gocardless_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    final_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    billing_request_id = models.CharField(max_length=255, blank=True, null=True)
+    subscription_id = models.CharField(max_length=255, blank=True, null=True)
+    subscription_reference = models.CharField(max_length=255, blank=True, null=True)
+
     mandate_id = models.CharField(max_length=255, blank=True, null=True)
     
     def __str__(self):

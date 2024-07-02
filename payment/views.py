@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.http import HttpResponse
+from random import randint
 from rest_framework.response import Response
 import json
 from .serializers import PaymentSerializer
@@ -17,7 +18,7 @@ from django.utils import timezone
 import gocardless_pro
 
 
-# Create your views here.
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 
@@ -26,7 +27,6 @@ def makePayment(request):
     client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
     customer, created = Customer.objects.get_or_create(user=user)
     if not customer.gocardless_customer_id:
-            # Create a GoCardless customer if not exists
             gc_customer = client.customers.create(params={
                 'given_name': user.name,
                 'family_name': user.name,
@@ -37,6 +37,7 @@ def makePayment(request):
             })
             customer.gocardless_customer_id = gc_customer.id
             customer.save()
+            # return Response({'message': 'Customer created successfully', 'data':gc_customer.id})
     try:
         billing_request = client.billing_requests.create(params={
             "payment_request": {
@@ -77,10 +78,12 @@ def makePayment(request):
             })
             billing_details = {
                 "authorised_link": billingflow.authorisation_url,
-                "expires_at": billingflow.expires_at
-                
+                "expires_at": billingflow.expires_at,
             }
             user = request.user
+            customer = Customer.objects.get(user=user)
+            customer.billing_request_id = billingflow.links.billing_request
+            customer.save()
             create_billing = Payment.objects.create(user=user, amount=9000, identity=billing_request.id)
             return JsonResponse(billing_details)
         except gocardless_pro.errors.InvalidApiUsageError as e:
@@ -115,7 +118,57 @@ def getPayments(request):
     payment = Payment.objects.filter(user=request.user).all().order_by('-id')
     PaymentHistory = PaymentSerializer(payment, many=True)
     return Response({'message': 'Payment History Returned Successfully','data':PaymentHistory.data, 'status':'success' }, 200)
-      
+
+# Handles the Mandates Events
+@api_view(['POST'])
+def handleMandateWebhook(request):
+    webhook_body = request.body.decode('utf-8')
+    webhook_json = json.loads(webhook_body)
+    events = webhook_json.get('events', [])
+    for event in events:
+        if event['resource_type'] == 'mandates' and event['action'] == 'created':
+            mandate_id_to_save = event['links']['mandate']
+            billing_request_id = event['links']['billing_request']
+            for evt in events:
+                    if evt['resource_type'] == 'billing_requests' and evt['links'].get('billing_request') == billing_request_id:
+                        customer_id = evt['links'].get('customer')
+                        try:
+                            customer = Customer.objects.get(billing_request_id=billing_request_id)
+                            customer.mandate_id = mandate_id_to_save
+                            customer.final_customer_id = customer_id
+                            customer.save()
+                        except Customer.DoesNotExist:
+                            return Response(f"Customer with id {customer_id} does not exist")
+                        break
+            if not customer.subscription_id:
+                client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
+                ref = f'LETPSB{randint(1000, 9000)}'
+                subscription = client.subscriptions.create(
+                    params={
+                        "amount" : 499, # 4.99 GBP in pence    
+                        "currency" : "GBP",
+                        "interval_unit" : "monthly",
+                        "day_of_month" : "1",
+                        "links": {
+                            "mandate": customer.mandate_id
+                                    # Mandate ID from the last section
+                        },
+                        "metadata": {
+                            "subscription_number": ref
+                        }
+                    }, headers={
+                        'Idempotency-Key': ref
+                })
+                customer.subscription_id = subscription.id
+                customer.subscription_reference = ref
+                customer.save()
+                return JsonResponse({'status': 'success', "id": subscription.id}, status=200)
+        return JsonResponse({'status': 'success, subscribed already'}, status=200)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+# @api_view(['POST'])
+# def handleCustomerIdWebhook(request):
+#     webhook_body = request.body.decode('utf-8')
     
    
     
