@@ -139,30 +139,29 @@ def handleMandateWebhook(request):
                             customer.save()
                         except Customer.DoesNotExist:
                             return Response(f"Customer with id {customer_id} does not exist")
-                        break
-            if not customer.subscription_id:
-                client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
-                ref = f'LETPSB{randint(1000, 9000)}'
-                subscription = client.subscriptions.create(
-                    params={
-                        "amount" : 499, # 4.99 GBP in pence    
-                        "currency" : "GBP",
-                        "interval_unit" : "monthly",
-                        "day_of_month" : "1",
-                        "links": {
-                            "mandate": customer.mandate_id
-                                    # Mandate ID from the last section
-                        },
-                        "metadata": {
-                            "subscription_number": ref
-                        }
-                    }, headers={
-                        'Idempotency-Key': ref
-                })
-                customer.subscription_id = subscription.id
-                customer.subscription_reference = ref
-                customer.save()
-                return JsonResponse({'status': 'success', "id": subscription.id}, status=200)
+    
+                        client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
+                        ref = f'LETPSB{randint(1000, 9000)}'
+                        subscription = client.subscriptions.create(
+                            params={
+                                "amount" : 499, # 4.99 GBP in pence    
+                                "currency" : "GBP",
+                                "interval_unit" : "monthly",
+                                "day_of_month" : "1",
+                                "links": {
+                                    "mandate": customer.mandate_id
+                                            # Mandate ID from the last section
+                                },
+                                "metadata": {
+                                    "subscription_number": ref
+                                }
+                            }, headers={
+                                'Idempotency-Key': ref
+                        })
+                        customer.subscription_id = subscription.id
+                        customer.subscription_reference = ref
+                        customer.save()
+                        return JsonResponse({'status': 'success', "id": subscription.id}, status=200)
         return JsonResponse({'status': 'success, subscribed already'}, status=200)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
     
