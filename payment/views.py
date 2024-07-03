@@ -24,7 +24,7 @@ import gocardless_pro
 
 def makePayment(request):
     user = request.user
-    client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
+    client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='live')
     customer, created = Customer.objects.get_or_create(user=user)
     if not customer.gocardless_customer_id:
             gc_customer = client.customers.create(params={
@@ -67,7 +67,7 @@ def makePayment(request):
         # return JsonResponse(billing_request_data)
 
         try:
-            client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
+            client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='live')
             billingflow = client.billing_request_flows.create(params={
             "redirect_uri": "https://letsplant.com/",
             "exit_uri": "https://letsplant.com/",
@@ -140,7 +140,7 @@ def handleMandateWebhook(request):
                         except Customer.DoesNotExist:
                             return Response(f"Customer with id {customer_id} does not exist")
     
-                        client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='sandbox')
+                        client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='live')
                         ref = f'LETPSB{randint(1000, 9000)}'
                         subscription = client.subscriptions.create(
                             params={
