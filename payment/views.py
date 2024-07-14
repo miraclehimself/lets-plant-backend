@@ -26,18 +26,9 @@ def makePayment(request):
     user = request.user
     client = gocardless_pro.Client(access_token=settings.GC_TOKEN, environment='live')
     customer, created = Customer.objects.get_or_create(user=user)
-    if not customer.gocardless_customer_id:
-            gc_customer = client.customers.create(params={
-                'given_name': user.name,
-                'family_name': user.name,
-                'email': user.email,
-                'metadata': {
-                    'user_id': str(user.id)
-                }
-            })
-            customer.gocardless_customer_id = gc_customer.id
-            customer.save()
-            # return Response({'message': 'Customer created successfully', 'data':gc_customer.id})
+    # return Response({'message': 'Customer created successfully', 'data':customer})
+    
+
     try:
         billing_request = client.billing_requests.create(params={
             "payment_request": {
@@ -90,6 +81,9 @@ def makePayment(request):
             return HttpResponse(f"Error creating billing request: {e}")    
     except gocardless_pro.errors.InvalidApiUsageError as e:
         return HttpResponse(f"Error creating billing request: {e}")
+
+
+    
     
 @api_view(['POST'])
 def handleWebhook(request):
