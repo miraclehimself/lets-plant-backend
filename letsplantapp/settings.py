@@ -229,4 +229,4 @@ EMAIL_HOST = 'mail.letplant.com'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'dev@letplant.com'
-EMAIL_HOST_PASSWORD = '{c1~778u&jy#'
+EMAIL_HOST_PASSWORD = '7@gi$^zg$b2Z'

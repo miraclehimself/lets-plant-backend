@@ -19,5 +19,8 @@ class processPlant(models.Model):
     soil_type = models.CharField(max_length=255, null=True, blank=True)
     symptoms = models.CharField(max_length=255, null=True, blank=True)
     recommendation = models.TextField(null=True,blank=True)
+    rate = models.CharField(max_length=4,null=True)
+    rated = models.BooleanField(null=True, default=False)
+    feedback = models.TextField(null=True, blank=True)
     meta_data = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -209,3 +209,25 @@ def gptIntegration(request):
                 'data': None,
                 'status': identification_result,
             },200)
+             
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])         
+def ratePlant(request):
+    id = request.data['id']
+    user = request.user
+    plant_data = processPlant.objects.get(id=id)
+    if plant_data.rated:
+        return Response({'message': 'You have already rated this plant'})
+    
+    if request.data['rate'].upper() == 'GOOD':
+        plant_data.rate = request.data['rate'].upper()
+        plant_data.rated = True
+        plant_data.save()
+        return Response({'message': 'Thank you, your feedback has been submitted successfully'}) 
+    plant_data.rate = request.data['rate'].upper()
+    plant_data.rated = True
+    plant_data.feedback = request.data['feedback']
+    plant_data.save()
+    return Response({'message': 'Thank you, We are sorry it was not a pleasing recommendation, your feedback has been submitted successfully'})
+    
+    

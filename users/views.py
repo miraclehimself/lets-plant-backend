@@ -143,7 +143,7 @@ class LoginView(APIView):
                 if user is None:
                      return Response({
                         'status': 400,
-                        'message': 'User not Founf',
+                        'message': 'User not Found',
                         'data' : {}
                     }, 404)
                 user = authenticate(email= email, password= password)
